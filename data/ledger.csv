@@ -1,0 +1,27 @@
+date,type,counterparty,description,base_amount,gst_amount,total_amount,status,invoice_id
+2026-04-16,income,Abc Corp,Website Design,21186.44,3813.56,25000.0,completed,
+2026-04-16,expense,Unknown,Figma Subscription,3813.56,686.44,4500.0,completed,
+2026-04-16,income,Zeta Solutions,Consulting,10169.49,1830.51,12000.0,completed,
+2026-04-16,expense,Unknown,Aws Hosting Charges,1016.95,183.05,1200.0,completed,
+2026-04-16,invoice_request,Nexus Media,"Send invoice to Nexus Media for 50,000",42372.88,7627.12,50000.0,completed,INV-2026-0001
+2026-04-16,income,Priya Sharma,Logo Design,6779.66,1220.34,8000.0,completed,
+2026-04-16,expense,Unknown,Office Supplies,3000.0,540.0,3540.0,completed,
+2026-04-16,income,Vertex Tech,Mobile App Development,63559.32,11440.68,75000.0,completed,
+2026-04-16,income,Abc Corp,Website Design,21186.44,3813.56,25000.0,completed,
+2026-04-16,expense,Unknown,Figma Subscription,3813.56,686.44,4500.0,completed,
+2026-04-16,income,Zeta Solutions,Consulting,10169.49,1830.51,12000.0,completed,
+2026-04-16,expense,Unknown,Aws Hosting Charges,1016.95,183.05,1200.0,completed,
+2026-04-16,invoice_request,Nexus Media,"Send invoice to Nexus Media for 50,000",42372.88,7627.12,50000.0,completed,INV-2026-0002
+2026-04-16,income,Priya Sharma,Logo Design,6779.66,1220.34,8000.0,completed,
+2026-04-16,expense,Unknown,Office Supplies,3000.0,540.0,3540.0,completed,
+2026-04-16,income,Vertex Tech,Mobile App Development,63559.32,11440.68,75000.0,completed,
+2026-04-16,income,Xyz,"Received 30,000 from XYZ",25423.73,4576.27,30000.0,completed,
+2026-04-16,income,Abc Corp,Website Design,21186.44,3813.56,25000.0,completed,
+2026-04-16,expense,Unknown,Figma Subscription,3813.56,686.44,4500.0,completed,
+2026-04-16,income,Zeta Solutions,Consulting,10169.49,1830.51,12000.0,completed,
+2026-04-16,expense,Unknown,Aws Hosting Charges,1016.95,183.05,1200.0,completed,
+2026-04-16,invoice_request,Nexus Media,"Send invoice to Nexus Media for 50,000",42372.88,7627.12,50000.0,completed,INV-2026-0003
+2026-04-16,income,Priya Sharma,Logo Design,6779.66,1220.34,8000.0,completed,
+2026-04-16,expense,Unknown,Office Supplies,3000.0,540.0,3540.0,completed,
+2026-04-16,income,Vertex Tech,Mobile App Development,63559.32,11440.68,75000.0,completed,
+2026-04-16,income,Sigma Retail,Branding Work,25423.73,4576.27,30000.0,completed,

@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Invoice {{ invoice_id }}</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      background: #f4f6f9;
+      color: #1a1a2e;
+      padding: 40px;
+    }
+    .invoice-box {
+      max-width: 760px;
+      margin: auto;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      overflow: hidden;
+    }
+    .header {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
+      color: white;
+      padding: 40px 48px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+    .brand { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
+    .brand span { color: #e94560; }
+    .brand-sub { font-size: 12px; color: #a0aec0; margin-top: 4px; letter-spacing: 1px; text-transform: uppercase; }
+    .invoice-meta { text-align: right; }
+    .invoice-meta .invoice-label { font-size: 12px; color: #a0aec0; text-transform: uppercase; letter-spacing: 1px; }
+    .invoice-meta .invoice-id { font-size: 22px; font-weight: 700; color: #e94560; margin-top: 4px; }
+    .invoice-meta .invoice-date { font-size: 13px; color: #cbd5e0; margin-top: 6px; }
+    .body-section { padding: 40px 48px; }
+    .parties { display: flex; justify-content: space-between; margin-bottom: 40px; }
+    .party { flex: 1; }
+    .party:last-child { text-align: right; }
+    .party-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #718096;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+    .party-name { font-size: 18px; font-weight: 700; color: #1a1a2e; }
+    .party-detail { font-size: 13px; color: #718096; margin-top: 4px; line-height: 1.6; }
+    .divider { height: 1px; background: #e2e8f0; margin: 0 48px; }
+    .table-section { padding: 32px 48px; }
+    .table-header {
+      display: grid;
+      grid-template-columns: 3fr 1fr 1fr;
+      background: #f7fafc;
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #718096;
+      margin-bottom: 8px;
+    }
+    .table-row {
+      display: grid;
+      grid-template-columns: 3fr 1fr 1fr;
+      padding: 16px;
+      border-bottom: 1px solid #edf2f7;
+      font-size: 14px;
+    }
+    .table-row:last-child { border-bottom: none; }
+    .item-name { font-weight: 600; color: #2d3748; }
+    .item-desc { font-size: 12px; color: #a0aec0; margin-top: 3px; }
+    .amount-col { text-align: right; font-weight: 500; color: #4a5568; }
+    .totals-section {
+      background: #f7fafc;
+      margin: 0 48px 40px;
+      border-radius: 10px;
+      padding: 24px;
+    }
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      font-size: 14px;
+      color: #4a5568;
+    }
+    .total-row.gst { color: #718096; font-size: 13px; }
+    .total-row.grand {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1a1a2e;
+      border-top: 2px solid #e2e8f0;
+      margin-top: 10px;
+      padding-top: 14px;
+    }
+    .grand .amount-highlight { color: #e94560; }
+    .footer {
+      background: #1a1a2e;
+      color: #718096;
+      padding: 24px 48px;
+      font-size: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .footer-note { font-style: italic; }
+    .footer-brand { color: #e94560; font-weight: 700; font-size: 14px; }
+    .status-badge {
+      display: inline-block;
+      background: #c6f6d5;
+      color: #276749;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin-top: 8px;
+    }
+    .gst-note {
+      font-size: 11px;
+      color: #a0aec0;
+      text-align: right;
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="invoice-box">
+    <div class="header">
+      <div>
+        <div class="brand">Artha<span>.</span></div>
+        <div class="brand-sub">Financial Operations</div>
+        <div class="status-badge">Tax Invoice</div>
+      </div>
+      <div class="invoice-meta">
+        <div class="invoice-label">Invoice Number</div>
+        <div class="invoice-id">{{ invoice_id }}</div>
+        <div class="invoice-date">Date: {{ date }}</div>
+      </div>
+    </div>
+
+    <div class="body-section">
+      <div class="parties">
+        <div class="party">
+          <div class="party-label">Billed From</div>
+          <div class="party-name">{{ seller_name }}</div>
+          <div class="party-detail">
+            {{ seller_email }}<br/>
+            GSTIN: {{ seller_gstin }}
+          </div>
+        </div>
+        <div class="party">
+          <div class="party-label">Billed To</div>
+          <div class="party-name">{{ client_name }}</div>
+          <div class="party-detail">
+            {{ client_email }}<br/>
+            {{ client_address }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="table-section">
+      <div class="table-header">
+        <span>Description</span>
+        <span style="text-align:right">HSN/SAC</span>
+        <span style="text-align:right">Amount</span>
+      </div>
+      <div class="table-row">
+        <div>
+          <div class="item-name">{{ description }}</div>
+          <div class="item-desc">Professional Services</div>
+        </div>
+        <div class="amount-col">998314</div>
+        <div class="amount-col">₹{{ base_amount }}</div>
+      </div>
+    </div>
+
+    <div class="totals-section">
+      <div class="total-row">
+        <span>Subtotal (Base Amount)</span>
+        <span>₹{{ base_amount }}</span>
+      </div>
+      <div class="total-row gst">
+        <span>CGST @ {{ cgst_rate }}%</span>
+        <span>₹{{ cgst_amount }}</span>
+      </div>
+      <div class="total-row gst">
+        <span>SGST @ {{ sgst_rate }}%</span>
+        <span>₹{{ sgst_amount }}</span>
+      </div>
+      <div class="total-row grand">
+        <span>Total Amount Due</span>
+        <span class="amount-highlight">₹{{ total_amount }}</span>
+      </div>
+      <div class="gst-note">GST @ 18% (CGST 9% + SGST 9%)</div>
+    </div>
+
+    <div class="footer">
+      <div class="footer-note">Thank you for your business. Payment due within 30 days.</div>
+      <div class="footer-brand">Artha FinOps</div>
+    </div>
+  </div>
+</body>
+</html>

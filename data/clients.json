@@ -1,0 +1,46 @@
+{
+  "clients": [
+    {
+      "name": "ABC Corp",
+      "email": "accounts@abccorp.in",
+      "address": "12, MG Road, Bengaluru - 560001, Karnataka",
+      "gstin": "29AABCA1234C1ZK",
+      "contact": "Rohan Mehta"
+    },
+    {
+      "name": "Zeta Solutions",
+      "email": "finance@zetasolutions.io",
+      "address": "Plot 5, MIDC, Pune - 411019, Maharashtra",
+      "gstin": "27AABCZ9876C1ZD",
+      "contact": "Priyanka Joshi"
+    },
+    {
+      "name": "Nexus Media",
+      "email": "billing@nexusmedia.co",
+      "address": "203, Anna Salai, Chennai - 600006, Tamil Nadu",
+      "gstin": "33AABCN5432C1ZP",
+      "contact": "Aravind Kumar"
+    },
+    {
+      "name": "Priya Sharma",
+      "email": "priya.sharma@email.com",
+      "address": "Delhi, India",
+      "gstin": "UNREGISTERED",
+      "contact": "Priya Sharma"
+    },
+    {
+      "name": "Vertex Tech",
+      "email": "ap@vertextech.in",
+      "address": "91 Springboard, Koramangala, Bengaluru - 560034",
+      "gstin": "29AABCV7654C1ZQ",
+      "contact": "Amit Verma"
+    },
+    {
+      "name": "Sigma Retail",
+      "email": "payments@sigmaretail.com",
+      "address": "Link Road, Goregaon, Mumbai - 400063, Maharashtra",
+      "gstin": "27AABCS1122C1ZR",
+      "contact": "Sunita Rao"
+    }
+  ]
+}
