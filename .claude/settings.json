@@ -14,7 +14,11 @@
       "Bash(nvm alias *)",
       "Bash(export PATH=\"$HOME/.nvm/versions/node/v22.14.0/bin:$PATH\")",
       "Bash(openclaw agent *)",
-      "Bash(openclaw config *)"
+      "Bash(openclaw config *)",
+      "WebFetch(domain:luma.com)"
+    ],
+    "additionalDirectories": [
+      "/Users/rakeshkumawat/.openclaw/workspace/skills/artha-finops"
     ]
   }
 }

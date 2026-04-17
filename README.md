@@ -1,5 +1,7 @@
 # Artha FinOps
 
+Example: "Received 35,000 from LedgerPe for building"
+
 Converts raw financial messages (WhatsApp/SMS) into invoices, ledger entries, and GST summaries.
 
 ## Setup
