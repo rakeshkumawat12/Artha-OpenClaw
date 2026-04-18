@@ -1,9 +1,9 @@
 {
-  "total_income": 641000.0,
-  "total_expenses": 36960.0,
-  "total_gst_collected": 97779.68,
-  "total_gst_paid": 5637.96,
-  "net_gst_liability": 92141.72,
+  "total_income": 882000.0,
+  "total_expenses": 51968.0,
+  "total_gst_collected": 134542.38,
+  "total_gst_paid": 7246.85,
+  "net_gst_liability": 127295.53,
   "invoice_count": 4,
-  "last_updated": "2026-04-17T17:31:09.854320"
+  "last_updated": "2026-04-18T16:08:58.529545"
 }

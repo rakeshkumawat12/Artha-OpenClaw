@@ -14,8 +14,8 @@ sys.path.insert(0, os.path.dirname(__file__))
 from parser import parse
 from finance import normalize_event, update_gst_summary, get_gst_summary
 from invoice import generate_invoice
-from ledger import append_entry, get_summary as get_ledger_summary, print_ledger_table
-from trust import execute_with_verification, get_audit_log
+from ledger import append_entry, get_summary as get_ledger_summary, print_ledger_table, find_open_invoice
+from trust import execute_with_verification, get_audit_log, verify_payment_amount
 
 SEPARATOR = "─" * 62
 
@@ -38,11 +38,29 @@ def _print_parsed(parsed: dict):
 
 def _print_financial(fd: dict):
     _print_header("STEP 2 · FINANCE ENGINE  →  GST + Normalization")
+    gst_pct = fd.get("gst_percent", int(fd.get("gst_rate", 0.18) * 100))
+    lookup_method = fd.get("gst_lookup_method", "default")
+    gst_source = fd.get("gst_source", "")
+    method_label = {"local_table": "local table", "web_search": "web search", "default": "default fallback"}.get(lookup_method, lookup_method)
+    print(f"  GST Rate    : {gst_pct}%  [{method_label}]")
+    print(f"  GST Source  : {gst_source[:70]}")
     print(f"  Base Amount : ₹{fd['base_amount']:,.2f}")
-    print(f"  GST (18%)   : ₹{fd['gst_amount']:,.2f}")
+    print(f"  GST Amount  : ₹{fd['gst_amount']:,.2f}")
     print(f"  Total       : ₹{fd['total_amount']:,.2f}")
     if fd.get("invoice_id"):
         print(f"  Invoice ID  : {fd['invoice_id']}")
+
+
+def _print_payment_verification(pv: dict):
+    _print_header("STEP 2b · PAYMENT VERIFICATION  →  Amount Check")
+    status = "PASSED" if pv["verified"] else "FAILED"
+    print(f"  Status      : {status}")
+    print(f"  Parsed Amt  : ₹{pv['parsed_amount']:,.2f}")
+    print(f"  Expected Amt: ₹{pv['expected_amount']:,.2f}")
+    print(f"  Discrepancy : ₹{pv['discrepancy']:,.2f}")
+    print(f"  Source      : {pv.get('expected_source', '—')}")
+    if not pv["verified"]:
+        print(f"  [!] {pv['reason']}")
 
 
 def _print_invoice(inv: dict):
@@ -111,7 +129,52 @@ def process(raw_input: str, auto_approve: bool = True) -> dict:
     financial_data = normalize_event(parsed)
     _print_financial(financial_data)
 
-    # 3. Invoice Generation (if needed)
+    # 2b. Payment Verification — must pass before invoice or ledger
+    parsed_amount = financial_data["total_amount"]
+
+    # Look up whether there is an open invoice for this counterparty
+    open_invoice = find_open_invoice(financial_data["counterparty"])
+    if open_invoice:
+        expected_amount = float(open_invoice["total_amount"])
+        expected_source = f"Open invoice {open_invoice['invoice_id']} raised on {open_invoice['date']}"
+    else:
+        # No prior invoice — use parsed amount, treat as a fresh confirmation
+        expected_amount = parsed_amount
+        expected_source = "No open invoice found — confirming parsed amount"
+
+    payment_check = verify_payment_amount(
+        parsed_amount=parsed_amount,
+        expected_amount=expected_amount,
+    )
+    payment_check["expected_source"] = expected_source
+    _print_payment_verification(payment_check)
+
+    # Gate: require user to explicitly confirm the amount before proceeding
+    pv_outcome = execute_with_verification(
+        action="verify_payment",
+        fn=lambda: payment_check,
+        metadata={
+            "counterparty": financial_data["counterparty"],
+            "parsed_amount": f"₹{parsed_amount:,.2f}",
+            "description": financial_data["description"],
+            "discrepancy": f"₹{payment_check['discrepancy']:,.2f}",
+            "check_result": "PASSED" if payment_check["verified"] else "FAILED — BLOCK",
+        },
+        auto_approve=auto_approve,
+    )
+
+    if not pv_outcome["approved"] or not payment_check["verified"]:
+        print("\n  [BLOCKED] Invoice and ledger update halted — payment not verified.")
+        print(f"  Reason: {payment_check['reason']}")
+        return {
+            "status": "blocked",
+            "reason": "payment_verification_failed",
+            "parsed": parsed,
+            "financial_data": financial_data,
+            "payment_check": payment_check,
+        }
+
+    # 3. Invoice Generation (only after payment is verified)
     invoice_result = None
     if financial_data["needs_invoice"] and financial_data["invoice_id"]:
         inv_outcome = execute_with_verification(
@@ -121,6 +184,7 @@ def process(raw_input: str, auto_approve: bool = True) -> dict:
                 "invoice_id": financial_data["invoice_id"],
                 "client": financial_data["counterparty"],
                 "amount": f"₹{financial_data['total_amount']:,.2f}",
+                "payment_verified": "YES",
             },
             auto_approve=auto_approve,
         )
@@ -130,14 +194,16 @@ def process(raw_input: str, auto_approve: bool = True) -> dict:
         else:
             print("\n  [REJECTED] Invoice generation was rejected.")
 
-    # 4. Ledger Update
+    # 4. Ledger Update — status reflects actual payment verification
+    ledger_status = "completed" if payment_check["verified"] else "pending"
     ledger_outcome = execute_with_verification(
         action="update_ledger",
-        fn=lambda: append_entry(financial_data, status="completed"),
+        fn=lambda: append_entry(financial_data, status=ledger_status),
         metadata={
             "counterparty": financial_data["counterparty"],
             "amount": f"₹{financial_data['total_amount']:,.2f}",
             "type": financial_data["event_type"],
+            "status": ledger_status,
         },
         auto_approve=auto_approve,
     )

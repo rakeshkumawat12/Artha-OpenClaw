@@ -7,18 +7,22 @@ import json
 import os
 from datetime import datetime
 
-DATA_DIR = os.path.join(os.path.dirname(__file__), "../../data")
-AUDIT_LOG_PATH = os.path.join(DATA_DIR, "audit_log.jsonl")
+from db import audit_insert, audit_get_recent as db_audit_get_recent
 
 # Risk classification rules
 RISK_RULES = {
+    "verify_payment": {
+        "risk_level": "high",
+        "reason": "Payment amount must be confirmed before invoice is issued",
+        "requires_approval": True,
+    },
     "generate_invoice": {
-        "risk_level": "low",
-        "reason": "Local file generation only",
-        "requires_approval": False,
+        "risk_level": "high",
+        "reason": "Invoice is a legal financial document — payment must be verified first",
+        "requires_approval": True,
     },
     "update_ledger": {
-        "risk_level": "low",
+        "risk_level": "medium",
         "reason": "Local data modification",
         "requires_approval": False,
     },
@@ -116,22 +120,57 @@ def request_approval(verification: dict, auto_approve: bool = False) -> dict:
 
 
 def log_decision(verification: dict, extra: dict = None):
-    """Append a decision to the audit log."""
-    os.makedirs(DATA_DIR, exist_ok=True)
-    entry = {
-        "timestamp": verification.get("timestamp", datetime.now().isoformat()),
-        "action": verification.get("action"),
-        "risk_level": verification.get("risk_level"),
-        "status": "approved" if verification.get("approved") else "rejected",
-        "decision_reason": verification.get("decision_reason", "unknown"),
-        "details": {
-            **(verification.get("metadata") or {}),
-            **(extra or {}),
-        },
-    }
-    with open(AUDIT_LOG_PATH, "a") as f:
-        f.write(json.dumps(entry) + "\n")
-    return entry
+    """Append a decision to the audit log in DB."""
+    return audit_insert(verification, extra=extra)
+
+
+def verify_payment_amount(
+    parsed_amount: float,
+    expected_amount: float,
+    tolerance: float = 0.01,
+) -> dict:
+    """
+    Check whether the payment amount in the message matches the expected amount.
+
+    Args:
+        parsed_amount:   Amount extracted from the user's message.
+        expected_amount: Amount that was actually expected (e.g. from a prior invoice).
+                         Pass the same as parsed_amount when there is no prior invoice
+                         — in that case the check is a confirmation, not a mismatch check.
+        tolerance:       Fractional tolerance (default 1%) to allow minor rounding.
+
+    Returns:
+        {
+            "verified": bool,
+            "parsed_amount": float,
+            "expected_amount": float,
+            "discrepancy": float,
+            "reason": str,
+        }
+    """
+    discrepancy = abs(parsed_amount - expected_amount)
+    allowed_delta = expected_amount * tolerance
+
+    if discrepancy <= allowed_delta:
+        return {
+            "verified": True,
+            "parsed_amount": parsed_amount,
+            "expected_amount": expected_amount,
+            "discrepancy": round(discrepancy, 2),
+            "reason": "Amount matches expected value within tolerance.",
+        }
+    else:
+        return {
+            "verified": False,
+            "parsed_amount": parsed_amount,
+            "expected_amount": expected_amount,
+            "discrepancy": round(discrepancy, 2),
+            "reason": (
+                f"Amount mismatch: received ₹{parsed_amount:,.2f} "
+                f"but expected ₹{expected_amount:,.2f} "
+                f"(difference ₹{discrepancy:,.2f})."
+            ),
+        }
 
 
 def execute_with_verification(
@@ -174,19 +213,8 @@ def execute_with_verification(
 
 
 def get_audit_log(n: int = 10) -> list[dict]:
-    """Return last N audit log entries."""
-    if not os.path.exists(AUDIT_LOG_PATH):
-        return []
-    entries = []
-    with open(AUDIT_LOG_PATH, "r") as f:
-        for line in f:
-            line = line.strip()
-            if line:
-                try:
-                    entries.append(json.loads(line))
-                except json.JSONDecodeError:
-                    continue
-    return entries[-n:]
+    """Return last N audit log entries from DB."""
+    return db_audit_get_recent(n)
 
 
 if __name__ == "__main__":

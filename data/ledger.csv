@@ -38,3 +38,12 @@ date,type,counterparty,description,base_amount,gst_amount,total_amount,status,in
 2026-04-17,income,Trecc,Website Architect,12711.86,2288.14,15000.0,completed,
 2026-04-17,income,Ledgerpe,Building,29661.02,5338.98,35000.0,completed,
 2026-04-17,income,Akash,Designing,847.46,152.54,1000.0,completed,
+2026-04-17,income,Rajdeep,Designing,847.46,152.54,1000.0,completed,
+2026-04-17,income,Ledgerpe,Building,29661.02,5338.98,35000.0,completed,
+2026-04-17,income,Aakash,Designing,29661.02,5338.98,35000.0,completed,
+2026-04-18,income,Abc Corp,Website Design,21186.44,3813.56,25000.0,completed,
+2026-04-18,expense,Unknown,Mobile Phone Purchase,13392.86,1607.14,15000.0,completed,
+2026-04-18,expense,Unknown,"Bought a car for 8,00,000",6.25,1.75,8.0,completed,
+2026-04-18,income,Abc Corp,Website Design,21186.44,3813.56,25000.0,completed,
+2026-04-18,income,Nexus Media,Mobile App Development,42372.88,7627.12,50000.0,pending,INV-2026-0005
+2026-04-18,income,Nexus Media,"Received 50,000 from Nexus Media",42372.88,7627.12,50000.0,completed,

@@ -57,6 +57,8 @@ def render_invoice_html(financial_data: dict) -> str:
     gst_amount = financial_data["gst_amount"]
     cgst = round(gst_amount / 2, 2)
     sgst = round(gst_amount / 2, 2)
+    gst_pct = financial_data.get("gst_percent", int(financial_data.get("gst_rate", 0.18) * 100))
+    half_pct = gst_pct / 2
 
     client = resolve_client(financial_data["counterparty"])
 
@@ -71,8 +73,8 @@ def render_invoice_html(financial_data: dict) -> str:
         "client_address": client.get("address", "India"),
         "description": financial_data["description"],
         "base_amount": f"{financial_data['base_amount']:,.2f}",
-        "cgst_rate": "9",
-        "sgst_rate": "9",
+        "cgst_rate": str(half_pct),
+        "sgst_rate": str(half_pct),
         "cgst_amount": f"{cgst:,.2f}",
         "sgst_amount": f"{sgst:,.2f}",
         "total_amount": f"{financial_data['total_amount']:,.2f}",

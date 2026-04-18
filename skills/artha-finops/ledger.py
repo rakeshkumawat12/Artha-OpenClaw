@@ -1,113 +1,47 @@
 """
 ledger.py — Ledger System
-Appends transaction entries and maintains financial history using CSV.
+Backed by SQLite via db.py. CSV file kept as a read-only export fallback.
 """
 
-import csv
-import os
-from datetime import datetime
-
-DATA_DIR = os.path.join(os.path.dirname(__file__), "../../data")
-LEDGER_PATH = os.path.join(DATA_DIR, "ledger.csv")
-
-LEDGER_FIELDS = [
-    "date",
-    "type",
-    "counterparty",
-    "description",
-    "base_amount",
-    "gst_amount",
-    "total_amount",
-    "status",
-    "invoice_id",
-]
-
-
-def _ensure_ledger():
-    os.makedirs(DATA_DIR, exist_ok=True)
-    if not os.path.exists(LEDGER_PATH):
-        with open(LEDGER_PATH, "w", newline="") as f:
-            writer = csv.DictWriter(f, fieldnames=LEDGER_FIELDS)
-            writer.writeheader()
+from typing import Optional
+from db import (
+    ledger_insert,
+    ledger_find_open_invoice,
+    ledger_get_recent,
+    ledger_get_summary,
+    ledger_get_all,
+    ledger_get_pending,
+)
 
 
 def append_entry(financial_data: dict, status: str = "completed") -> dict:
-    """
-    Append a transaction to the ledger.
-
-    Args:
-        financial_data: Output from finance.normalize_event()
-        status: "completed" | "pending" | "rejected"
-
-    Returns:
-        The ledger row that was written.
-    """
-    _ensure_ledger()
-    row = {
-        "date": financial_data.get("date", datetime.now().strftime("%Y-%m-%d")),
-        "type": financial_data.get("event_type", "unknown"),
-        "counterparty": financial_data.get("counterparty", "Unknown"),
-        "description": financial_data.get("description", ""),
-        "base_amount": financial_data.get("base_amount", 0.0),
-        "gst_amount": financial_data.get("gst_amount", 0.0),
-        "total_amount": financial_data.get("total_amount", 0.0),
-        "status": status,
-        "invoice_id": financial_data.get("invoice_id", ""),
-    }
-    with open(LEDGER_PATH, "a", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=LEDGER_FIELDS)
-        writer.writerow(row)
-    return row
+    """Insert a transaction into the DB and return the written row."""
+    return ledger_insert(financial_data, status=status)
 
 
 def read_all() -> list[dict]:
-    """Return all ledger entries as a list of dicts."""
-    _ensure_ledger()
-    with open(LEDGER_PATH, "r", newline="") as f:
-        reader = csv.DictReader(f)
-        return list(reader)
+    """Return all ledger entries."""
+    return ledger_get_all()
 
 
 def get_summary() -> dict:
-    """Compute running totals from the ledger."""
-    entries = read_all()
-    total_income = 0.0
-    total_expenses = 0.0
-    gst_collected = 0.0
-    gst_paid = 0.0
-
-    for entry in entries:
-        try:
-            total = float(entry.get("total_amount", 0))
-            gst = float(entry.get("gst_amount", 0))
-            if entry["type"] == "income":
-                total_income += total
-                gst_collected += gst
-            elif entry["type"] == "expense":
-                total_expenses += total
-                gst_paid += gst
-        except (ValueError, KeyError):
-            continue
-
-    return {
-        "total_transactions": len(entries),
-        "total_income": round(total_income, 2),
-        "total_expenses": round(total_expenses, 2),
-        "net_cashflow": round(total_income - total_expenses, 2),
-        "gst_collected": round(gst_collected, 2),
-        "gst_paid": round(gst_paid, 2),
-        "net_gst_liability": round(gst_collected - gst_paid, 2),
-    }
+    """Compute running totals directly from DB — always accurate."""
+    return ledger_get_summary()
 
 
-def get_recent(n: int = 5) -> list[dict]:
+def find_open_invoice(counterparty: str) -> Optional[dict]:
+    """Find the most recent pending invoice for a counterparty."""
+    return ledger_find_open_invoice(counterparty)
+
+
+def get_recent(n: int = 10) -> list[dict]:
     """Return the last N entries."""
-    return read_all()[-n:]
+    return ledger_get_recent(n)
 
 
 def print_ledger_table():
     """Pretty-print the ledger as a table."""
-    entries = read_all()
+    entries = ledger_get_all()
     if not entries:
         print("  [Ledger is empty]")
         return
