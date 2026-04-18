@@ -227,28 +227,29 @@ All tuneable security parameters are environment variables:
 ## 8. Security Component Map
 
 ```mermaid
-graph TD
-    subgraph Entry ["Entry Point"]
-        TG[Telegram API]
+flowchart TD
+    TG([Telegram API])
+
+    subgraph BOT ["telegram_bot.py"]
+        DEC["@secured decorator\nsecurity.py"]
+        PIPE["run_pipeline()"]
     end
 
-    subgraph Middleware ["Security Middleware — security.py"]
-        DEC["@secured decorator"]
+    subgraph SEC ["security.py"]
         WL["is_allowed_user()"]
         RL["is_rate_limited()"]
-        SAN["sanitize_input()"]
-        GATE["security_gate()"]
-        AUDIT_BLOCK["_log_blocked() → audit_log"]
+        SAN["sanitize_input()\n+ pattern scan"]
+        AUDIT_BLOCK["_log_blocked()"]
     end
 
-    subgraph Trust ["Trust Layer — trust.py"]
-        ASSESS["assess_action()"]
-        APPROVAL["request_approval()"]
-        LOG_DEC["log_decision() → audit_log"]
-        VERIFY["verify_payment_amount()"]
+    subgraph TRUST ["trust.py"]
+        ASSESS["assess_action()\nrisk classification"]
+        APPROVAL["request_approval()\napprove / reject"]
+        VERIFY["verify_payment_amount()\ntolerance check"]
+        LOG_DEC["log_decision()"]
     end
 
-    subgraph Data ["Data Layer — db.py"]
+    subgraph DB ["db.py — SQLite"]
         LEDGER["ledger table"]
         GST["gst_summary table"]
         AUDIT_DB["audit_log table"]
@@ -256,16 +257,22 @@ graph TD
 
     TG --> DEC
     DEC --> WL --> RL --> SAN
-    SAN --> GATE
-    GATE -->|blocked| AUDIT_BLOCK --> AUDIT_DB
-    GATE -->|clean| ASSESS
-    ASSESS --> APPROVAL --> LOG_DEC --> AUDIT_DB
-    APPROVAL --> VERIFY
-    VERIFY --> LEDGER
-    VERIFY --> GST
+    SAN -->|blocked| AUDIT_BLOCK --> AUDIT_DB
+    SAN -->|clean text| PIPE
+
+    PIPE --> VERIFY
+    PIPE --> ASSESS
+    ASSESS --> APPROVAL
+    APPROVAL -->|approved| LEDGER
+    APPROVAL -->|approved| GST
+    APPROVAL --> LOG_DEC --> AUDIT_DB
+    VERIFY -->|mismatch| AUDIT_DB
+    VERIFY -->|matched| LEDGER
+    VERIFY -->|matched| GST
 
     style AUDIT_BLOCK fill:#c0392b,color:#fff
     style AUDIT_DB fill:#8e44ad,color:#fff
     style LEDGER fill:#2980b9,color:#fff
     style GST fill:#2980b9,color:#fff
+    style DEC fill:#1a5276,color:#fff
 ```
